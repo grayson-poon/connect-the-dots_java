@@ -2,6 +2,8 @@ package com.grayson.connect_the_dots.config;
 
 import lombok.NoArgsConstructor;
 import org.flywaydb.core.Flyway;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +14,8 @@ import java.sql.*;
 @Configuration
 @NoArgsConstructor
 public class DatabaseInitializer {
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseInitializer.class);
+
     private final String databaseName = "connect_the_dots";
 
     @Value("${spring.datasource.host}")
@@ -32,21 +36,9 @@ public class DatabaseInitializer {
         };
     }
 
-    private void createDatabase() {
-        final String createDatabaseQuery = "CREATE DATABASE IF NOT EXISTS " + this.databaseName + ";";
-
-        try (
-            Connection connection = DriverManager.getConnection(databaseHost, databaseUsername, databasePassword);
-            Statement statement = connection.createStatement()
-        ) {
-            statement.executeUpdate(createDatabaseQuery);
-            System.out.println("Successfully executed the following query: \"" + createDatabaseQuery + "\"");
-        } catch (Exception error) {
-            System.out.println(error.getMessage());
-        }
-    }
-
     private Flyway configureFlyway() {
+        logger.info("Configuring Flyway.");
+
         return Flyway.configure()
                 .dataSource(databaseHost, databaseUsername, databasePassword)
                 .defaultSchema(this.databaseName)
@@ -54,12 +46,30 @@ public class DatabaseInitializer {
                 .load();
     }
 
+    private void createDatabase() {
+        logger.info("Attempting to create the application database.");
+
+        final String createDatabaseQuery = "CREATE DATABASE IF NOT EXISTS " + this.databaseName + ";";
+
+        try (
+            Connection connection = DriverManager.getConnection(databaseHost, databaseUsername, databasePassword);
+            Statement statement = connection.createStatement()
+        ) {
+            statement.executeUpdate(createDatabaseQuery);
+            logger.info("Successfully executed the following query: \"" + createDatabaseQuery + "\"");
+        } catch (Exception error) {
+            logger.error(error.getMessage());
+        }
+    }
+
     private void applyMigrations(Flyway flyway) {
+        logger.info("Applying migrations manually.");
+
         try {
             flyway.migrate();
-            System.out.println("Flyway applied migrations successfully.");
+            logger.info("Flyway applied migrations successfully.");
         } catch (Exception error) {
-            System.out.println(error.getMessage());
+            logger.error(error.getMessage());
         }
     }
 }
