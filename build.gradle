@@ -46,24 +46,6 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.register('generateMigration') {
-	doLast {
-		def timestamp = new Date().format("yyyyMMddHHmmss")
-		def migrationTitle = project.hasProperty('title') ? project.title : 'new_migration'
-		def fileName = "V${timestamp}__${migrationTitle}.sql"
-		def migrationDir = file("src/main/resources/db/migration")
-
-		if (!migrationDir.exists()) {
-			migrationDir.mkdirs()
-		}
-
-		def migrationFile = new File(migrationDir, fileName)
-		migrationFile.createNewFile()
-
-		println "Created migration file with timestamp prefix: ${fileName}"
-	}
-}
-
 tasks.named('test') {
 	useJUnitPlatform()
 }
