@@ -29,11 +29,15 @@ public class DatabaseInitializer {
 
     @Bean
     public ApplicationRunner initialize() {
-        return args -> {
-            Flyway flyway = this.configureFlyway();
-            this.createDatabase();
-            this.applyMigrations(flyway);
-        };
+        logger.info("Initializing database.");
+
+        Flyway flyway = this.configureFlyway();
+        this.createDatabase();
+        this.applyMigrations(flyway);
+
+        logger.info("Database initialized.");
+
+        return args -> {};
     }
 
     private Flyway configureFlyway() {
